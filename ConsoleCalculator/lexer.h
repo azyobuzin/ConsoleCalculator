@@ -12,7 +12,8 @@ enum TokenType
 	TOKEN_PLUS, // +
 	TOKEN_MINUS, // -
 	TOKEN_TIMES, // *
-	TOKEN_DIV // /
+	TOKEN_DIV, // /
+	TOKEN_CARET // ^
 };
 
 // 1トークンの情報
@@ -23,18 +24,19 @@ typedef struct Token
 } Token;
 
 // トークンの連結リスト
-typedef struct TokenList
+typedef struct TokenList* TokenList;
+struct TokenList
 {
 	Token value;
-	struct TokenList *next;
-} TokenList;
+	TokenList next;
+};
 
 // 標準入力から読み取ってトークンリストを作成します。
 // 改行または EOF に出会うまで読み取り続けます。
-TokenList* lexFromStdin(void);
+TokenList lexFromStdin(void);
 
 // TokenList で使用しているメモリを開放します。
-void freeTokenList(TokenList *firstNode);
+void freeTokenList(TokenList firstNode);
 
-// TOKEN_BAD が含まれているなら true を返します。
-bool hasBadToken(TokenList *pNode);
+// エラーがあるなら true を返します。
+bool hasError(TokenList node);

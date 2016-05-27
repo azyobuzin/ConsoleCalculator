@@ -1,12 +1,14 @@
+// 字句解析
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "lexer.h"
 
-TokenList* lexFromStdin(void)
+TokenList lexFromStdin(void)
 {
 	int input;
 	Token token;
-	TokenList *pNode = malloc(sizeof(TokenList));
+	TokenList pNode = malloc(sizeof(struct TokenList));
 
 SCAN:
 	input = getchar();
@@ -85,6 +87,11 @@ SCAN:
 		token.type = TOKEN_DIV;
 		break;
 
+	case '^':
+		// ^ トークン
+		token.type = TOKEN_CARET;
+		break;
+
 	default:
 		// 対応していない文字が入力されたのでエラー
 		token.type = TOKEN_BAD;
@@ -99,10 +106,10 @@ RETURN:
 	return pNode;
 }
 
-void freeTokenList(TokenList *firstNode)
+void freeTokenList(TokenList firstNode)
 {
 	// TOKEN_BAD または TOKEN_EOF が最後になるので、そこまで順番に開放していく
-	TokenList *current = firstNode, *next;
+	TokenList current = firstNode, next;
 	while (true)
 	{
 		bool isLast = current->value.type == TOKEN_BAD || current->value.type == TOKEN_EOF;
@@ -115,13 +122,16 @@ void freeTokenList(TokenList *firstNode)
 	}
 }
 
-bool hasBadToken(TokenList *pNode)
+bool hasError(TokenList node)
 {
-	// とにかくループで掘っていく
-	// （これやるなら連結リストじゃないほうがよかったかも）
+	// 最初のトークンが EOF ならエラー
+	if (node->value.type == TOKEN_EOF)
+		return true;
+
+	// TOKEN_BAD が存在するならエラー
 	while (true)
 	{
-		switch (pNode->value.type)
+		switch (node->value.type)
 		{
 		case TOKEN_BAD:
 			return true;
@@ -129,6 +139,6 @@ bool hasBadToken(TokenList *pNode)
 			return false;
 		}
 
-		pNode = pNode->next;
+		node = node->next;
 	}
 }

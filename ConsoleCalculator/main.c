@@ -1,55 +1,59 @@
 #include <stdio.h>
-#include "parser.h"
+#include <string.h>
+#include "printer.h"
 
-// トークンリストを標準出力に書き出します（デバッグ用）。
-void printTokens(TokenList *pNode)
+int main(int argc, char *argv[])
 {
-	while (true)
+	// コマンドライン引数に --debug があるならデバッグモード
+	bool debugMode = false;
+	for (int i = 0; i < argc; i++)
 	{
-		switch (pNode->value.type)
+		if (strcmp(argv[i], "--debug") == 0)
 		{
-		case TOKEN_BAD:
-			printf("BAD\n");
-			return;
-		case TOKEN_EOF:
-			printf("EOF\n");
-			return;
-		case TOKEN_NUM:
-			printf("%lf\n", pNode->value.data);
+			debugMode = true;
 			break;
-		case TOKEN_LPAREN:
-			printf("(\n");
-			break;
-		case TOKEN_RPAREN:
-			printf(")\n");
-			break;
-		case TOKEN_PLUS:
-			printf("+\n");
-			break;
-		case TOKEN_MINUS:
-			printf("-\n");
-			break;
-		case TOKEN_TIMES:
-			printf("*\n");
-			break;
-		case TOKEN_DIV:
-			printf("/\n");
-			break;
-		default:
-			printf("不明なトークン\n");
-			return;
 		}
-
-		pNode = pNode->next;
 	}
-}
 
-int main(void)
-{
 	printf("計算式 => ");
 
-	TokenList *pNode = lexFromStdin();
-	printTokens(pNode);
+	// 計算式を読み取ってトークンリストを作成
+	TokenList tokens = lexFromStdin();
+
+	if (debugMode)
+	{
+		// デバッグモードならトークンリストを表示
+		printf("Tokens: ");
+		printTokens(tokens);
+		printf("\n");
+	}
+
+	if (hasError(tokens))
+	{
+		// 字句解析に失敗したのでエラーを表示して終了
+		if (debugMode)
+		{
+			printf("字句解析失敗\n");
+		}
+		else
+		{
+			printf("文法に誤りがあります。\n字句解析結果: ");
+			printTokens(tokens);
+			printf("\n");
+		}
+		return 1;
+	}
+
+	// トークンリストから式の木を作成
+	Expr expr = parse(tokens);
+
+	if (debugMode)
+	{
+		// デバッグモードなら式を表示
+		printf("Expr: ");
+		printExpr(expr);
+		printf("\n");
+	}
 
 	return 0;
 }
