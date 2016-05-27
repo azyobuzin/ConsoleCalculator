@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "evaluator.h"
 #include "printer.h"
 
 int main(int argc, char *argv[])
@@ -46,13 +47,23 @@ int main(int argc, char *argv[])
 
 	// トークンリストから式の木を作成
 	Expr expr = parse(tokens);
+	
+	// 実行！！
+	EvalResult result = eval(expr);
 
-	if (debugMode)
+	if (result.success)
 	{
-		// デバッグモードなら式を表示
-		printf("Expr: ");
+		printExpr(expr);
+		printf(" = %lf\n", result.result);
+	}
+	else
+	{
+		printf("文法に誤りがあります。\n字句解析結果: ");
+		printTokens(tokens);
+		printf("\n構文解析結果: ");
 		printExpr(expr);
 		printf("\n");
+		return 1;
 	}
 
 	return 0;

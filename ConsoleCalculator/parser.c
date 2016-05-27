@@ -32,7 +32,8 @@ bool eat(State state, enum TokenType token)
 	enum TokenType currentType = state->currentToken->value.type;
 	if (currentType == token)
 	{
-		state->currentToken = state->currentToken->next;
+		if (currentType != TOKEN_EOF && currentType != TOKEN_BAD)
+			state->currentToken = state->currentToken->next;
 		return true;
 	}
 	return false;
@@ -215,4 +216,24 @@ Expr parse(TokenList tokens)
 	// ParseState ‚ðì¬‚µ‚Ä parseLevel1 ‚ðŠJŽn
 	struct ParseState state = { tokens };
 	return parseLevel1(&state);
+}
+
+void freeExpr(Expr expr)
+{
+	switch (expr->type)
+	{
+	case EXPR_ADD:
+	case EXPR_SUB:
+	case EXPR_MUL:
+	case EXPR_DIV:
+	case EXPR_POW:
+		freeExpr(expr->u.binary.left);
+		freeExpr(expr->u.binary.right);
+		break;
+	case EXPR_NEG:
+		freeExpr(expr->u.unary);
+		break;
+	}
+
+	free(expr);
 }

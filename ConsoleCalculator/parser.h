@@ -30,6 +30,9 @@ struct Expr
 	} u;
 };
 
+// トークンリストから式の木を作成します。
 Expr parse(TokenList tokens);
 
+// メモリを解放します。
+// 用意したけど未使用
 void freeExpr(Expr root);

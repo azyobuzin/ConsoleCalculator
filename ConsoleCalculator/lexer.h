@@ -36,6 +36,7 @@ struct TokenList
 TokenList lexFromStdin(void);
 
 // TokenList で使用しているメモリを開放します。
+// 用意したけど未使用
 void freeTokenList(TokenList firstNode);
 
 // エラーがあるなら true を返します。
