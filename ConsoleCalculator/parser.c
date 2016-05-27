@@ -26,19 +26,6 @@ Expr parseLevel4(State state);
 // Level5 := NUM | ( Level1 )
 Expr parseLevel5(State state);
 
-// 現在のトークンが token 引数と一致するなら currentToken を進めて true を返します。
-bool eat(State state, enum TokenType token)
-{
-	enum TokenType currentType = state->currentToken->value.type;
-	if (currentType == token)
-	{
-		if (currentType != TOKEN_EOF && currentType != TOKEN_BAD)
-			state->currentToken = state->currentToken->next;
-		return true;
-	}
-	return false;
-}
-
 // currentToken を進めます。現在のトークンが BAD や EOF なら false を返します。
 bool advance(State state)
 {
@@ -51,6 +38,18 @@ bool advance(State state)
 
 	state->currentToken = state->currentToken->next;
 	return true;
+}
+
+// 現在のトークンが token 引数と一致するなら currentToken を進めて true を返します。
+bool eat(State state, enum TokenType token)
+{
+	enum TokenType currentType = state->currentToken->value.type;
+	if (currentType == token)
+	{
+		advance(state);
+		return true;
+	}
+	return false;
 }
 
 // 動的にメモリを確保して expr を代入したポインタを返します。
