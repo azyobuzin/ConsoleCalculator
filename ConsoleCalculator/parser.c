@@ -23,30 +23,25 @@ Expr parseLevel3(State state);
 // Level4 := Level5 | + Level5 | - Level5
 Expr parseLevel4(State state);
 
-// Level5 := NUM | ( Level1 )
+// Level5 := NUM | ( Level1 ) | Level5 NUM | Level5 ( Level1 )
 Expr parseLevel5(State state);
-
-// currentToken を進めます。現在のトークンが BAD や EOF なら false を返します。
-bool advance(State state)
-{
-	switch (state->currentToken->value.type)
-	{
-	case TOKEN_BAD:
-	case TOKEN_EOF:
-		return false;
-	}
-
-	state->currentToken = state->currentToken->next;
-	return true;
-}
 
 // 現在のトークンが token 引数と一致するなら currentToken を進めて true を返します。
 bool eat(State state, enum TokenType token)
 {
+	// 現在のトークンが BAD か EOF なら読み進めない
 	enum TokenType currentType = state->currentToken->value.type;
-	if (currentType == token)
+	switch (currentType)
 	{
-		advance(state);
+	case TOKEN_BAD:
+	case TOKEN_EOF:
+		return token == currentType;
+	}
+
+	// 次のトークンと比較
+	if (token == state->currentToken->next->value.type)
+	{
+		state->currentToken = state->currentToken->next;
 		return true;
 	}
 	return false;
@@ -185,35 +180,54 @@ Expr parseLevel4(State state)
 
 Expr parseLevel5(State state)
 {
-	Expr expr;
+	Expr expr = NULL;
 
-	// 現在のトークンは定数式で使うので保存しておいて、読み進める
-	Token token = state->currentToken->value;
-	advance(state);
-
-	switch (token.type)
+	while (true)
 	{
-	case TOKEN_NUM:
-		// 定数式
-		return newNumExpr(token.data);
-	case TOKEN_LPAREN:
-		// 括弧
-		expr = parseLevel1(state); // 中身の式
-		// ) があることを確認。 EOF は閉じ括弧省略とみなす
-		if (eat(state, TOKEN_RPAREN) || eat(state, TOKEN_EOF))
-			return expr;
+		Expr right;
+		if (eat(state, TOKEN_NUM))
+		{
+			// 定数式
+			right = newNumExpr(state->currentToken->value.data);
+		}
+		else if (eat(state, TOKEN_LPAREN))
+		{
+			// 括弧
+			right = parseLevel1(state); // 中身の式
+			// ) があることを確認。 EOF は閉じ括弧省略とみなす
+			if (!eat(state, TOKEN_RPAREN) && !eat(state, TOKEN_EOF))
+			{
+				// 括弧が閉じられていないので不正な式
+				freeExpr(right);
+				right = newBadExpr();
+			}
+		}
 		else
-			return newBadExpr(); // 括弧が閉じられていないので不正な式
+		{
+			break;
+		}
+
+		if (expr == NULL)
+			expr = right;
+		else
+			// 連続した括弧は乗算扱い
+			expr = newBinaryExpr(EXPR_MUL, expr, right);
 	}
 
-	return newBadExpr(); // 認識できないトークンなので不正な式とする
+RETURN:
+	// expr が NULL → 1トークンも読み取れなかったので BadExpr とする
+	if (expr == NULL)
+		return newBadExpr();
+
+	return expr;
 }
 
 // 外部からの入り口
 Expr parse(TokenList tokens)
 {
 	// ParseState を作成して parseLevel1 を開始
-	struct ParseState state = { tokens };
+	struct TokenList first = { { TOKEN_NONE }, tokens };
+	struct ParseState state = { &first };
 	return parseLevel1(&state);
 }
 

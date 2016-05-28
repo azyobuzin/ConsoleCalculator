@@ -4,6 +4,7 @@
 // トークンの種類
 enum TokenType
 {
+	TOKEN_NONE, // パーサで内部的に使用する
 	TOKEN_BAD, // 異常なトークン
 	TOKEN_EOF, // 終了
 	TOKEN_NUM, // 数値
