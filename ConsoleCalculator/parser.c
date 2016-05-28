@@ -58,23 +58,21 @@ Expr dynamicExpr(struct Expr expr)
 // 二項演算式オブジェクトを作成します。
 Expr newBinaryExpr(enum ExprType type, Expr left, Expr right)
 {
-	struct Expr x = { type,{ left, right } };
+	struct Expr x = { .type = type, .binary = { left, right } };
 	return dynamicExpr(x);
 }
 
 // 単項演算式オブジェクトを作成します。
 Expr newUnaryExpr(enum ExprType type, Expr expr)
 {
-	struct Expr x = { type, expr };
+	struct Expr x = { .type = type, .unary = expr };
 	return dynamicExpr(x);
 }
 
 // 定数式オブジェクトを作成します。
 Expr newNumExpr(double value)
 {
-	struct Expr x;
-	x.type = EXPR_NUM;
-	x.u.num = value;
+	struct Expr x = { .type = EXPR_NUM, .num = value };
 	return dynamicExpr(x);
 }
 
@@ -204,6 +202,7 @@ Expr parseLevel5(State state)
 		}
 		else
 		{
+			// 定数でも括弧でもないのでループ終了
 			break;
 		}
 
@@ -214,7 +213,6 @@ Expr parseLevel5(State state)
 			expr = newBinaryExpr(EXPR_MUL, expr, right);
 	}
 
-RETURN:
 	// expr が NULL → 1トークンも読み取れなかったので BadExpr とする
 	if (expr == NULL)
 		return newBadExpr();
@@ -226,8 +224,8 @@ RETURN:
 Expr parse(TokenList tokens)
 {
 	// ParseState を作成して parseLevel1 を開始
-	struct TokenList first = { { TOKEN_NONE }, tokens };
-	struct ParseState state = { &first };
+	struct TokenList first = { .value = { .type = TOKEN_NONE }, .next = tokens };
+	struct ParseState state = { .currentToken = &first };
 	return parseLevel1(&state);
 }
 
@@ -240,11 +238,11 @@ void freeExpr(Expr expr)
 	case EXPR_MUL:
 	case EXPR_DIV:
 	case EXPR_POW:
-		freeExpr(expr->u.binary.left);
-		freeExpr(expr->u.binary.right);
+		freeExpr(expr->binary.left);
+		freeExpr(expr->binary.right);
 		break;
 	case EXPR_NEG:
-		freeExpr(expr->u.unary);
+		freeExpr(expr->unary);
 		break;
 	}
 

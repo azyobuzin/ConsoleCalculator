@@ -4,10 +4,10 @@
 // “ñ€‰‰Zq‚Ì®‚ğ•]‰¿‚µ‚ÄA¶•ÓE‰E•Ó‚Æ‚à‚É•]‰¿¬Œ÷‚·‚ê‚Î true ‚ğ•Ô‚·B
 bool evalBinOp(Expr expr, double *destLeft, double *destRight)
 {
-	EvalResult leftResult = eval(expr->u.binary.left);
+	EvalResult leftResult = eval(expr->binary.left);
 	if (!leftResult.success) return false;
 
-	EvalResult rightResult = eval(expr->u.binary.right);
+	EvalResult rightResult = eval(expr->binary.right);
 	if (!rightResult.success) return false;
 
 	*destLeft = leftResult.result;
@@ -16,7 +16,9 @@ bool evalBinOp(Expr expr, double *destLeft, double *destRight)
 }
 
 // “ñ€‰‰Zq‘½‚¢‚Ì‚Åƒ}ƒNƒ‰»
-#define BIN(op) r.success = evalBinOp(expr, &left, &right); r.result = left op right
+#define BIN(op) \
+	r.success = evalBinOp(expr, &left, &right); \
+	r.result = left op right
 
 EvalResult eval(Expr expr)
 {
@@ -29,7 +31,7 @@ EvalResult eval(Expr expr)
 	case EXPR_NUM:
 		// ’è”‚È‚Ì‚Å‚»‚Ì‚Ü‚Ü“Ë‚Á‚Ş
 		r.success = true;
-		r.result = expr->u.num;
+		r.result = expr->num;
 		break;
 	case EXPR_ADD:
 		// ‰ÁZ
@@ -54,7 +56,7 @@ EvalResult eval(Expr expr)
 		break;
 	case EXPR_NEG:
 		// ”Û’è
-		r = eval(expr->u.unary);
+		r = eval(expr->unary);
 		if (r.success)
 			r.result = -r.result;
 		break;

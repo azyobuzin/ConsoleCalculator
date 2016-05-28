@@ -52,9 +52,9 @@ void printTokens(TokenList node)
 void printBinaryExpr(Expr expr, char op)
 {
 	printf("(");
-	printExpr(expr->u.binary.left);
+	printExpr(expr->binary.left);
 	printf(" %c ", op);
-	printExpr(expr->u.binary.right);
+	printExpr(expr->binary.right);
 	printf(")");
 }
 
@@ -66,7 +66,7 @@ void printExpr(Expr expr)
 		printf("BAD");
 		break;
 	case EXPR_NUM:
-		printf("%lf", expr->u.num);
+		printf("%lf", expr->num);
 		break;
 	case EXPR_ADD:
 		printBinaryExpr(expr, '+');
@@ -85,7 +85,7 @@ void printExpr(Expr expr)
 		break;
 	case EXPR_NEG:
 		printf("- ");
-		printExpr(expr->u.unary);
+		printExpr(expr->unary);
 		break;
 	default:
 		printf("?");

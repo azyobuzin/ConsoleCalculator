@@ -27,7 +27,7 @@ struct Expr
 		Expr unary;
 		// 定数式
 		double num;
-	} u;
+	};
 };
 
 // トークンリストから式の木を作成します。
